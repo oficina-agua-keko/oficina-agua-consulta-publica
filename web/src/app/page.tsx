@@ -1,3 +1,6 @@
+import { ChatWidget } from 'oficina-agua-chat-widget';
+import 'oficina-agua-chat-widget/styles.css';
+
 import { ConsultaForm } from '@/components/ConsultaForm';
 import { configCaptcha } from '@/lib/config';
 
@@ -30,6 +33,9 @@ export default function Home() {
       <footer className="pie">
         <p>Oficina del Agua · Consulta pública</p>
       </footer>
+
+      {/* Widget de chat (Feature 2), instalado como dependencia. Habla solo con /api/chat. */}
+      <ChatWidget />
     </div>
   );
 }

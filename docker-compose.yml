@@ -8,7 +8,7 @@
 # Orden de arranque:
 #   1. mysql-replica  -> debe quedar "healthy"
 #   2. api            -> espera a la réplica
-#   3. web            -> espera al api (Next.js: pagina publica con captcha)
+#   3. web            -> espera al api (Next.js: pagina publica con captcha y widget de chat)
 #
 # Aislamiento: todos los servicios viven en la red "consulta-net". En esta red NO
 # existe la instancia MySQL del monolito, y el ApiRest solo conoce el host
@@ -88,6 +88,15 @@ services:
       # false: Next.js recibe conexiones directas del navegador y usa la IP real de la conexion.
       # true: solo si hay un proxy de confianza delante que ya pone la IP correcta en X-Forwarded-For.
       TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-false}
+      # Chat (HU-59): el BFF del widget reenvia las preguntas al ApiRest del chatbot (Feature 2),
+      # que corre fuera de este compose. Solo el servidor conoce esta URL.
+      CHAT_API_URL: ${CHAT_API_URL:-http://host.docker.internal:8083}
+      CHAT_TIMEOUT_MS: ${CHAT_TIMEOUT_MS:-70000}
+      CHAT_RATE_LIMIT_MAX: ${CHAT_RATE_LIMIT_MAX:-10}
+      CHAT_RATE_LIMIT_WINDOW_SECONDS: ${CHAT_RATE_LIMIT_WINDOW_SECONDS:-60}
+    # Permite llegar a la maquina anfitriona tambien en Linux (en Docker Desktop ya existe).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:

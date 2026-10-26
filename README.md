@@ -32,6 +32,10 @@ y por rate limit por IP en el ApiRest (segunda barrera, independiente).
                      en servidor                               Instancia MySQL del monolito
 ```
 
+El chat de la Feature 2 se muestra en esta misma página como un widget flotante: el
+navegador le habla a `/api/chat` (BFF del paquete, montado en `web/`) y este lo reenvía por
+http al ApiRest del chatbot. Ver [Chat en la página pública](#chat-en-la-página-pública-hu-59).
+
 El diagrama completo de la Fase 2 está en [`docs/arquitectura-fase2.png`](docs/arquitectura-fase2.png).
 
 ## Estructura del repositorio
@@ -39,7 +43,7 @@ El diagrama completo de la Fase 2 está en [`docs/arquitectura-fase2.png`](docs/
 ```
 .
 ├── api/                  ApiRest de consulta (Spring Boot) — HU-20, HU-23, HU-24
-├── web/                  Capa Web (Next.js) con captcha — HU-25, HU-26, HU-27
+├── web/                  Capa Web (Next.js) con captcha y widget de chat — HU-25, HU-26, HU-27, HU-59
 ├── db/replica/           Réplica MySQL: usuario de solo lectura y carga — HU-22
 ├── scripts/              Scripts de apoyo (refrescar la réplica)
 ├── docs/                 Diagramas y documentación
@@ -66,7 +70,7 @@ En Windows (CMD) el segundo paso es `copy .env.example .env`.
 |---|---|---|---|
 | `mysql-replica` | Réplica MySQL del monolito | `3307` | Se carga con `scripts\refrescar-replica.ps1` (ver abajo) |
 | `api` | ApiRest de consulta | `8081` | Swagger UI en <http://localhost:8081/swagger-ui.html> |
-| `web` | Página pública con captcha (Next.js) | `3000` | <http://localhost:3000> |
+| `web` | Página pública con captcha y widget de chat (Next.js) | `3000` | <http://localhost:3000> |
 
 **Orden de arranque:** primero `mysql-replica` (espera a estar saludable), luego `api`,
 luego `web`. Compose lo resuelve solo con `depends_on`.
@@ -101,6 +105,38 @@ docker compose down -v               # detener y borrar los datos de la réplica
 El puerto de la réplica es `3307` y no `3306` para no chocar con el MySQL local
 (Laragon, XAMPP). Si algún puerto ya está en uso, cámbialo en tu `.env`
 (`API_PORT`, `WEB_PORT`, `REPLICA_DB_HOST_PORT`).
+
+## Chat en la página pública (HU-59)
+
+La página con captcha aloja el widget de chat de la Feature 2
+([proyecto-agua-chatbot-rag](https://github.com/OliverGodoy/proyecto-agua-chatbot-rag)).
+Se instala como **dependencia** (paquete `oficina-agua-chat-widget`); en este repositorio
+**no hay código del chat copiado**, solo tres puntos de montaje en `web/`:
+
+| Archivo | Qué hace |
+|---|---|
+| `web/package.json` | Dependencia `oficina-agua-chat-widget`, tomada del release `widget-v1.0.0` del repositorio de la Feature 2. |
+| `web/src/app/api/chat/route.ts` | BFF del chat: una línea que reexporta el route handler del paquete. |
+| `web/src/app/page.tsx` | Muestra `<ChatWidget />` en la misma página del captcha y carga sus estilos. |
+
+**Configuración (solo variables de entorno, ver `.env.example`):**
+
+| Variable | Descripción |
+|---|---|
+| `CHAT_API_URL` | URL del ApiRest del chatbot. Solo la lee el servidor Web; el navegador nunca la ve. |
+| `CHAT_TIMEOUT_MS` | Espera máxima al ApiRest del chatbot (por defecto `70000`). |
+| `CHAT_RATE_LIMIT_MAX` / `CHAT_RATE_LIMIT_WINDOW_SECONDS` | Límite de preguntas por IP del chat (por defecto 10 por 60 s). |
+
+**El ApiRest del chatbot no corre en este `docker-compose.yml`:** se levanta desde el
+repositorio de la Feature 2. Como el ApiRest de consulta ya usa el puerto `8081`, el del
+chatbot debe correr en otro puerto (por ejemplo `SERVER_PORT=8083`) y `CHAT_API_URL` debe
+apuntar a él. Dentro de Docker, `host.docker.internal` es la máquina anfitriona.
+
+Si el ApiRest del chatbot no está disponible, el formulario de consulta sigue funcionando
+con normalidad: el chat solo muestra un mensaje de que el asistente no está disponible.
+
+**Actualizar el widget:** cambiar la versión en la URL de la dependencia
+(`widget-v1.1.0`, etc.) y ejecutar `npm install` dentro de `web/`.
 
 ## Flujo de trabajo del equipo
 

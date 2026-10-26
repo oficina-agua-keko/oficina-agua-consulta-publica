@@ -86,7 +86,8 @@ body {
   color: rgba(255, 255, 255, 0.85);
   text-align: center;
   font-size: 0.875rem;
-  padding: 0.25rem 1rem;
+  /* Deja libre la esquina inferior derecha: ahi flota el boton del chat (HU-59). */
+  padding: 0.25rem 1rem 4.75rem;
 }
 
 /* ---------- Tarjeta ---------- */
