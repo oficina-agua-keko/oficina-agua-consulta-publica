@@ -90,7 +90,7 @@ services:
       TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-false}
       # Chat (HU-59): el BFF del widget reenvia las preguntas al ApiRest del chatbot (Feature 2),
       # que corre fuera de este compose. Solo el servidor conoce esta URL.
-      CHAT_API_URL: ${CHAT_API_URL:-http://host.docker.internal:8083}
+      CHAT_API_URL: ${CHAT_API_URL:-http://host.docker.internal:8084}
       CHAT_TIMEOUT_MS: ${CHAT_TIMEOUT_MS:-70000}
       CHAT_RATE_LIMIT_MAX: ${CHAT_RATE_LIMIT_MAX:-10}
       CHAT_RATE_LIMIT_WINDOW_SECONDS: ${CHAT_RATE_LIMIT_WINDOW_SECONDS:-60}
