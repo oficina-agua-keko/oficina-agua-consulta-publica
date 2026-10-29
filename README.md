@@ -129,7 +129,7 @@ Se instala como **dependencia** (paquete `oficina-agua-chat-widget`); en este re
 
 **El ApiRest del chatbot no corre en este `docker-compose.yml`:** se levanta desde el
 repositorio de la Feature 2. Como el ApiRest de consulta ya usa el puerto `8081`, el del
-chatbot debe correr en otro puerto (por ejemplo `SERVER_PORT=8083`) y `CHAT_API_URL` debe
+chatbot debe correr en otro puerto (por ejemplo `SERVER_PORT=8084`) y `CHAT_API_URL` debe
 apuntar a él. Dentro de Docker, `host.docker.internal` es la máquina anfitriona.
 
 Si el ApiRest del chatbot no está disponible, el formulario de consulta sigue funcionando
