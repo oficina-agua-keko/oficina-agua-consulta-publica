@@ -80,8 +80,9 @@ existentes.** Las features lo consultan de forma indirecta:
 - El **chat de la Feature 2 no es una página aparte**: el widget y su BFF se montan dentro de la
   aplicación Next.js de la Feature 1 (HU-59). El diagrama los dibuja como bloque separado
   porque son dos features distintas.
-- En local, DynamoDB corre como **DynamoDB Local**, los sistemas externos (Bancos y ERP) se
-  simulan con **WireMock** y el broker es **RabbitMQ**.
+- En local, DynamoDB corre como **DynamoDB Local** y el broker es **RabbitMQ**. Los sistemas
+  externos (Bancos y ERP) se simulan con **WireMock** (por defecto) o con el **simulador del
+  docente** (HU-61), según las variables `BANCO_URL` y `ERP_URL` del `.env`.
 - Los nombres *Thread / GenerarJob / Generate / GetJob* del bloque 4 son conceptuales; en el
   servicio son los endpoints `POST /api/sync/resumen` y `GET /api/sync/jobs/{jobId}`.
 - Los *embeddings* y el LLM del chatbot se consumen de una API externa; su clave nunca se
@@ -153,7 +154,10 @@ cargado con los scripts de `db/origen/` de la Feature 4. Después:
 git clone https://github.com/oficina-agua-keko/oficina-agua-envio-pagos.git
 cd oficina-agua-envio-pagos
 cp .env.example .env      # puertos, usuarios de base y RabbitMQ (ver README del repositorio)
-docker compose up -d --build        # RabbitMQ, DynamoDB, simuladores y Lambda
+# Por defecto Bancos y ERP son los simuladores locales (WireMock). Para usar el simulador del
+# docente se cambian BANCO_URL, ERP_URL y sus claves en el .env (la clave la entrega el docente
+# y nunca se versiona); SIMULACION_ESCENARIO elige el escenario a simular.
+docker compose up -d --build        # RabbitMQ, DynamoDB, simuladores locales y Lambda
 cd consumer && SERVER_PORT=8086 mvn spring-boot:run    # terminal 1
 cd producer && SERVER_PORT=8085 mvn spring-boot:run    # terminal 2
 ```
@@ -270,7 +274,9 @@ prueba públicas de Google; ninguna credencial real se versiona.
 
 ## 4. Evidencias de la solución integrada
 
-Las capturas muestran las cuatro features corriendo juntas en una misma máquina.
+Las capturas muestran las cuatro features corriendo juntas en una misma máquina. Las de la
+Feature 3 se tomaron con los simuladores locales (WireMock), que fallan a propósito con
+algunos pagos para mostrar los reintentos y la cola de mensajes fallidos.
 
 **Contenedores de las cuatro features en ejecución**
 ![Contenedores](docs/img/01-contenedores.png)
